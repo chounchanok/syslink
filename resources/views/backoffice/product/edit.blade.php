@@ -6,7 +6,7 @@ Website: http://www.left4code.com/
 Contact: muhammadrizki@left4code.com
 Purchase: https://themeforest.net/user/left4code/portfolio
 Renew Support: https://themeforest.net/user/left4code/portfolio
-License: You must have a valid license purchased only from themeforest(the above link) in order to legally use the theme for your project.
+License: You must have a valid license purchased only from themeforest(the above link) in order to legally use the theme for your product.
 -->
 <html lang="en" class="light">
     <!-- BEGIN: Head -->
@@ -35,7 +35,7 @@ License: You must have a valid license purchased only from themeforest(the above
                     <nav aria-label="breadcrumb" class="-intro-x mr-auto hidden sm:flex">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="#">Application</a></li>
-                            <li class="breadcrumb-item"><a href="/backoffice/project">Project</a></li>
+                            <li class="breadcrumb-item"><a href="/backoffice/product">product</a></li>
                             <li class="breadcrumb-item active" aria-current="page">Edit</li>
                         </ol>
                     </nav>
@@ -52,7 +52,7 @@ License: You must have a valid license purchased only from themeforest(the above
                 <!-- END: Top Bar -->
                 <div class="intro-y flex items-center mt-8">
                     <h2 class="text-lg font-medium mr-auto">
-                        Edit {{$project->name}}
+                        Edit {{$product->name}}
                     </h2>
                 </div>
                 <div class="grid grid-cols-12 gap-6 mt-5">
@@ -61,21 +61,29 @@ License: You must have a valid license purchased only from themeforest(the above
 
                     <div class="intro-y col-span-12 lg:col-span-8">
                         <!-- BEGIN: Form Layout -->
-                        <form action="{{route('project.update')}}" method="POST" enctype="multipart/form-data"">
+                        <form action="{{route('product.update')}}" method="POST" enctype="multipart/form-data"">
                             @csrf
                         <div class="intro-y box p-5">
-                            <input type="hidden" name="id" value="{{$project->id}}" id="">
+                            <input type="hidden" name="id" value="{{$product->id}}" id="">
                             <div>
-                                <label class="form-label">name</label>
-                                <input id="crud-form-1" type="text" class="form-control" name="name" value="{{$project->name}}">
+                                <label class="form-label">Name</label>
+                                <input id="crud-form-1" type="text" class="form-control" name="name" value="{{$product->name}}">
                             </div>
                             <div>
-                                <label class="form-label">color</label>
-                                <input id="crud-form-1" type="color" class="form-control" name="color" value="{{$project->color}}">
+                                <label class="form-label">Stock no.</label>
+                                <input id="crud-form-1" type="text" class="form-control" name="sku" value="{{$product->sku}}">
+                            </div>
+                            <div>
+                                <label class="form-label">Unit</label>
+                                <input id="crud-form-1" type="text" class="form-control" name="unit" value="{{$product->unit}}">
+                            </div>
+                            <div>
+                                <label class="form-label">Quantity</label>
+                                <input id="crud-form-1" type="number" class="form-control" name="qty" value="{{$product->qty}}">
                             </div>
 
                             <div class="text-right mt-5">
-                                <a type="button" href="{{route('project')}}" class="btn btn-outline-secondary w-24 mr-1">Cancel</a>
+                                <a type="button" href="{{url('product')}}" class="btn btn-outline-secondary w-24 mr-1">Cancel</a>
                                 <button type="submit" class="btn btn-primary w-24">Save</button>
                             </div>
 

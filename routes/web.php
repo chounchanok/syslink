@@ -12,21 +12,13 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\saleController;
 use Illuminate\Support\Facades\Response;
+use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\ReportController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
-
-// Route::get('/', function () {
-//     return view('welcome');
-// });
+Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
+Route::get('/calendar/events', [CalendarController::class, 'getEvents'])->name('calendar.events');
+Route::post('/calendar/update-drop', [CalendarController::class, 'updateDragDrop'])->name('calendar.update');
 
 Route::get('/login',[AuthController::class, 'login']);
 Route::post('/admin/login', [AuthController::class, 'login_func']);
@@ -102,6 +94,12 @@ route::group(['middleware'=>['checklogin']],function(){
         Route::post('edit/sub',[JobController::class,'editsub']);
         Route::post('delete',[JobController::class,'delete_job']);
         Route::post('file/delete',[JobController::class,'delete_file']);
+        Route::get('/templates', [JobController::class, 'templates'])->name('job.templates'); // Job Templates
+        Route::get('/approvals', [JobController::class, 'approvals'])->name('job.approvals'); // Approval Center
+        Route::get('/logs', [JobController::class, 'logs'])->name('job.logs'); // Check-in Logs
+        Route::post('/templates/create', [JobController::class, 'template_create'])->name('job.template_create');
+        Route::post('/templates/delete', [JobController::class, 'template_delete'])->name('job.template_delete');
+        Route::post('/approvals/action', [JobController::class, 'approval_action'])->name('job.approval_action');
     });
 
     Route::prefix('product')->group(function () {
@@ -125,18 +123,32 @@ route::group(['middleware'=>['checklogin']],function(){
     Route::post('/team/search',[TeamController::class,'search'])->name('team.search');
     // Route::post('/team/file/delete',[TeamController::class,'delete_file']);
 
-    //project
-    Route::get('/project',[ProjectController::class,'index'])->name('project');
-    Route::get('/project/submit/{id}',[ProjectController::class,'add_submit'])->name('project.add');
-    Route::post('/project/create',[ProjectController::class,'create'])->name('project.create');
-    Route::post('/project/submit/create',[ProjectController::class,'submit_create'])->name('project.submit_create');
-    Route::get('/project/edit/{id}',[ProjectController::class,'edit'])->name('project.edit');
-    Route::get('/project/submit/edit/{id}',[ProjectController::class,'submit_edit'])->name('project.submit_edit');
-    Route::post('/project/update',[ProjectController::class,'update'])->name('project.update');
-    Route::post('/project/submit/update',[ProjectController::class,'submit_update'])->name('project.submit_update');
-    Route::post('/project/delete',[ProjectController::class,'delete'])->name('project.delete');
-    Route::post('/project/submit/delete',[ProjectController::class,'submit_delete'])->name('project.submit_delete');
-    Route::post('/project/search',[ProjectController::class,'search'])->name('project.search');
+    // --- Project Management ---
+    Route::get('/project', [ProjectController::class, 'index'])->name('project');
+    Route::post('/project/create', [ProjectController::class, 'create'])->name('project.create');
+    Route::get('/project/edit/{id}', [ProjectController::class, 'edit'])->name('project.edit');
+    Route::post('/project/update', [ProjectController::class, 'update'])->name('project.update');
+    Route::post('/project/delete', [ProjectController::class, 'delete'])->name('project.delete');
+
+    // Search (Controller ใหม่รวม Search ไว้ใน index แล้ว แต่ถ้าหน้าบ้านยิง POST มาที่นี่ ก็ให้ใช้ Route นี้)
+    Route::any('/project/search', [ProjectController::class, 'index'])->name('project.search');
+
+    // --- Site Management (แทนที่ Submit เดิม) ---
+    // 1. หน้าแสดงรายการ Site (แก้จาก add_submit) *สำคัญ: ต้องมี {id}
+    Route::get('/project/sites/{id?}', [ProjectController::class, 'sites'])->name('project.sites');
+
+    // 2. สร้าง Site ใหม่ (แก้จาก submit_create)
+    Route::post('/project/site/create', [ProjectController::class, 'site_create'])->name('project.site_create');
+
+    // 3. ลบ Site (แก้จาก submit_delete)
+    Route::post('/project/site/delete', [ProjectController::class, 'site_delete'])->name('project.site_delete');
+
+    // --- Assets (New SOW) ---
+    Route::get('/project/assets', [ProjectController::class, 'assets'])->name('project.assets');
+    Route::post('/project/asset/create', [ProjectController::class, 'asset_create'])->name('project.asset_create'); // เพิ่ม
+    Route::post('/project/asset/update-status', [ProjectController::class, 'asset_update_status'])->name('project.asset_update_status'); // เพิ่ม
+    Route::post('/project/asset/delete', [ProjectController::class, 'asset_delete'])->name('project.asset_delete'); // เพิ่ม
+
     //export
     Route::get('/export/job/pdf',[ExportController::class,'export_submit']);
     Route::post('/export/excel/team_report',[ExportController::class,'team_report']);
@@ -151,6 +163,18 @@ route::group(['middleware'=>['checklogin']],function(){
 
     //search
     Route::get('/search', [AdminController::class, 'search'])->name('search');
+
+    // Group: Documents
+    Route::prefix('documents')->group(function () {
+        Route::get('/', [DocumentController::class, 'index'])->name('documents');
+        Route::post('/upload', [DocumentController::class, 'store'])->name('documents.upload'); // เพิ่ม Route Upload
+        Route::post('/delete', [DocumentController::class, 'delete'])->name('documents.delete'); // เพิ่ม Route Delete
+    });
+
+    // Group: Reports
+    Route::prefix('reports')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('reports');
+    });
 
 
     Route::get('/clear-cache', function() {

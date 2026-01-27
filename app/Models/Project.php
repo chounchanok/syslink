@@ -13,4 +13,19 @@ class Project extends Model
     protected $fillable = [
         'name',
     ];
+
+    public function sites()
+    {
+        return $this->hasMany(Site::class);
+    }
+
+    public function assets()
+    {
+        return $this->hasMany(ProjectAsset::class);
+    }
+
+    public function documents()
+    {
+        return $this->morphMany(Document::class, 'documentable');
+    }
 }

@@ -51,8 +51,6 @@ class ProductController extends Controller
             'qty'   => 'integer|min:0'
         ]);
 
-        dd($request->all());
-
         $product =  Product::find($request->id);
         $product->name=$request->name;
         $product->sku=$request->sku;

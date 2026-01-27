@@ -183,17 +183,17 @@ if ($request->file('file_detail')) {
         return redirect('/job')->with('success',1);
     }
     public function edit($id){
-      
+
         $job = JobModel::find($id);
 
         // ดึง job ทั้งหมดที่มีชื่อเดียวกัน
         $jobsWithSameName = JobModel::where('job_name', $job->job_name)->pluck('id');
-        
+
         // ดึงไฟล์รูปภาพจากทุก job_id ที่มีชื่อเดียวกัน
         $job_img = JobFile::whereIn('job_id', $jobsWithSameName)
             ->whereIn('type', ["jpg", "png", "jpeg", "webp", "jfif"])
             ->get();
-        
+
         // ดึงไฟล์ที่ไม่ใช่รูปภาพ จาก job เดิมเท่านั้น
         $job_file = JobFile::where('job_id', $id)
             ->whereNotIn('type', ["jpg", "png", "jpeg", "webp", "jfif"])
@@ -406,6 +406,108 @@ if ($request->file('file_detail')) {
     {
         $districts = DB::table('thai_amphures')->where('province_id', $province_id)->get();
         return response()->json($districts);
+    }
+
+    public function templates(Request $request)
+    {
+        // ดึงข้อมูล Template ทั้งหมด
+        $templates = \App\Models\JobTemplate::orderBy('created_at', 'desc')
+                        ->paginate($request->show ?? 10);
+
+        return view('backoffice.job.templates', [
+            'templates' => $templates
+        ]);
+    }
+
+    public function template_create(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'estimated_hours' => 'nullable|integer',
+        ]);
+
+        $template = new \App\Models\JobTemplate;
+        $template->title = $request->title;
+        $template->description = $request->description;
+        $template->estimated_hours = $request->estimated_hours ?? 0;
+
+        // แปลง Checklist จาก Array เป็น JSON (รับค่ามาเป็น array ชื่อ checklist[])
+        // ตัวอย่าง input: <input name="checklist[]" value="Step 1">
+        if($request->has('checklist')){
+            // กรองค่าว่างออก
+            $checklist = array_filter($request->checklist, function($value) {
+                return !is_null($value) && $value !== '';
+            });
+            $template->checklist = array_values($checklist);
+        }
+
+        $template->save();
+
+        return redirect()->back()->with('success', 1);
+    }
+
+    public function template_delete(Request $request)
+    {
+        $template = \App\Models\JobTemplate::find($request->id);
+        $template->delete();
+
+        return redirect()->back()->with('success', 1);
+    }
+
+    public function approvals(Request $request)
+    {
+        // ดึงงานที่มีสถานะ 'waiting_approval'
+        // ควร eager load project และ site มาด้วยเพื่อประสิทธิภาพ
+        $approvals = \App\Models\Task::where('status', 'waiting_approval')
+                        // ->with(['project', 'site']) // เปิดใช้บรรทัดนี้ถ้าใน Task Model มี Relation แล้ว
+                        ->orderBy('updated_at', 'desc')
+                        ->paginate($request->show ?? 10);
+
+        return view('backoffice.job.approvals', [
+            'approvals' => $approvals
+        ]);
+    }
+
+    public function approval_action(Request $request)
+    {
+        $request->validate([
+            'task_id' => 'required|exists:tasks,id',
+            'action' => 'required|in:approve,reject',
+            'comment' => 'nullable|string'
+        ]);
+
+        $task = \App\Models\Task::find($request->task_id);
+
+        // 1. อัปเดตสถานะงาน
+        if ($request->action == 'approve') {
+            $task->status = 'completed'; // อนุมัติ -> จบงาน
+            $status_log = 'approved';
+        } else {
+            $task->status = 'rejected'; // ปฏิเสธ -> ตีกลับ
+            $status_log = 'rejected';
+        }
+        $task->save();
+
+        $log = new \App\Models\TaskApproval;
+        $log->task_id = $task->id;
+        $log->approver_id = auth()->guard('admin')->user()->id ?? 1; // ใส่ ID คนกด
+        $log->status = $status_log;
+        $log->comment = $request->comment;
+        $log->approved_at = now();
+        $log->save();
+
+        return redirect()->back()->with('success', 1);
+    }
+
+    public function logs(Request $request)
+    {
+        $logs = \App\Models\TaskLog::with(['user', 'task'])
+                    ->orderBy('created_at', 'desc')
+                    ->paginate($request->show ?? 10);
+
+        return view('backoffice.job.logs', [
+            'logs' => $logs
+        ]);
     }
 
 }
