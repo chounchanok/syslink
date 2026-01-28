@@ -359,7 +359,7 @@ License: You must have a valid license purchased only from themeforest(the above
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-body p-0">
-                                <form action="{{route('project.submit_delete')}}" method="post" enctype="multipart/form-data">
+                                <form action="{{url('project/submit_delete')}}" method="post" enctype="multipart/form-data">
                                     @csrf
                                     <input type="hidden" name="url_return" value="/job/edit/{{$job->id}}" id="">
                                 <div class="p-5 text-center"> <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>

@@ -39,7 +39,7 @@
             <ul class="{{request()->is('technician*') || request()->is('engineer*') || request()->is('sale*') ? 'side-menu__sub-open' : ''}}">
                 <li>
                     <a href="{{url('/technician')}}" class="side-menu {{request()->is('technician*') ? 'side-menu--active' : ''}}">
-                        <div class="side-menu__icon"> <i data-lucide="tool"></i> </div>
+                        <div class="side-menu__icon"> <i data-lucide="wrench"></i> </div>
                         <div class="side-menu__title"> Technician </div>
                     </a>
                 </li>
